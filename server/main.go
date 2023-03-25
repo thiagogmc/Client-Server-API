@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -62,9 +63,9 @@ func (app *App) quotationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctxDB, cancelDB := context.WithTimeout(r.Context(), 10*time.Millisecond)
+	ctxDB, cancelDB := context.WithTimeout(r.Context(), 1*time.Millisecond)
 	defer cancelDB()
-	app.insertQuotation(ctxDB, quotation)
+	err = app.insertQuotation(ctxDB, quotation)
 	if err != nil {
 		fmt.Println("It was not possible to insert the quotation on database. Error:", err)
 		http.Error(w, "Request timeout", http.StatusRequestTimeout)
@@ -118,10 +119,9 @@ func (app *App) insertQuotation(ctx context.Context, q Quotation) error {
 	if err != nil {
 		return err
 	}
-
 	select {
 	case <-ctx.Done():
-		return err
+		return errors.New("Context deadline exceeded")
 	default:
 		return nil
 	}
