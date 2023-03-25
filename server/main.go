@@ -63,7 +63,7 @@ func (app *App) quotationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctxDB, cancelDB := context.WithTimeout(r.Context(), 1*time.Millisecond)
+	ctxDB, cancelDB := context.WithTimeout(r.Context(), 10*time.Millisecond)
 	defer cancelDB()
 	err = app.insertQuotation(ctxDB, quotation)
 	if err != nil {
@@ -119,6 +119,7 @@ func (app *App) insertQuotation(ctx context.Context, q Quotation) error {
 	if err != nil {
 		return err
 	}
+
 	select {
 	case <-ctx.Done():
 		return errors.New("Context deadline exceeded")
